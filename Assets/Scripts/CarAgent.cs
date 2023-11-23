@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -15,7 +16,7 @@ public class CarAgent : Agent
     public float MaxSpeed = 10f;
 
     [Tooltip("Car's maximum accelrating/deacclerating force")]
-    public float MaxAcceleration = 5f;
+    public float MaxAcceleration = 5000f;
 
     [Tooltip("Car's maximum steering angle")]
     public float MaxSteeringAngle = 50f;
@@ -23,13 +24,39 @@ public class CarAgent : Agent
     [Tooltip("Is training mode on ?")]
     public bool TrainingMode = false;
 
+    [Tooltip("Back wheel collider Passenger side")]
+    public WheelCollider WheelBL;
+
+    [Tooltip("Back wheel collider Driver side")]
+    public WheelCollider WheelBR;
+
+    [Tooltip("Front wheel collider Passenger side")]
+    public WheelCollider WheelFL;
+
+    [Tooltip("Front wheel collider Driver side")]
+    public WheelCollider WheelFR;
+
+    [Tooltip("Transform of Back wheel collider Passenger side")]
+    public Transform WheelBL_pos;
+
+    [Tooltip("Transform of Back wheel collider Driver side")]
+    public Transform WheelBR_pos;
+
+    [Tooltip("Transform of Front wheel collider Passenger side")]
+    public Transform WheelFL_pos;
+
+    [Tooltip("Transform of Front wheel collider Driver side")]
+    public Transform WheelFR_pos;
+
+    public float BrakeTorque = 1000f;
+
     private Rigidbody Rb;
 
     private List<Transform> Rewards = new List<Transform>();
 
     private Transform nearestReward;
 
-    private float smoothSteeringChange = 0f;
+    private bool updating = false;
 
     public override void Initialize()
     {
@@ -49,22 +76,66 @@ public class CarAgent : Agent
     public override void OnActionReceived(ActionBuffers actions)
     {
         float[] continuousActions = actions.ContinuousActions.Array;
-        float acceleration = continuousActions[0];
-        float steering = continuousActions[1];
-        float steeringCurrentAngle = transform.rotation.eulerAngles.y;
-        // Calculate smooth rotation changes
-        smoothSteeringChange = Mathf.MoveTowards(smoothSteeringChange, steering, 2f * Time.fixedDeltaTime);
-        transform.rotation = Quaternion.Euler(0f, steeringCurrentAngle + MaxSteeringAngle * smoothSteeringChange * Time.fixedDeltaTime, 0f);
+        float acceleration = MaxAcceleration * continuousActions[0];
+        float steering = MaxSteeringAngle * continuousActions[1];
+        float brake = acceleration <0 ? BrakeTorque * -continuousActions[0] : 0 ;
 
-        Rb.AddForce(transform.forward.normalized * MaxAcceleration * acceleration * Time.fixedDeltaTime, ForceMode.Acceleration);
+        AddReward(-0.1f * Mathf.Abs(continuousActions[1]));
+        AddReward(0.5f * continuousActions[0]);
+
+        if (!updating & acceleration > 0) Torque(WheelBL, acceleration);
+        if (!updating & acceleration > 0) Torque(WheelBR, acceleration);
+
+        if (!updating) Steer(WheelFL, steering);
+        if (!updating) Steer(WheelFR, steering);
+
+        if (!updating) Brake(WheelBL, brake);
+        if (!updating) Brake(WheelBR, brake);
+        if (!updating) Brake(WheelFL, brake);
+        if (!updating) Brake(WheelFR, brake);
+
+        if (!updating) UpdateWheelPos(WheelBL, WheelBL_pos);
+        if (!updating) UpdateWheelPos(WheelBR, WheelBR_pos);
+        if (!updating) UpdateWheelPos(WheelFL, WheelFL_pos);
+        if (!updating) UpdateWheelPos(WheelFR, WheelFR_pos);
+
+    }
+    void Torque(WheelCollider col, float acceleration)
+    {
+        updating = true;
+        col.motorTorque = acceleration;
+        updating = false;
     }
 
+    void Steer(WheelCollider col, float steering)
+    {
+        updating = true;
+        col.steerAngle = steering;
+        updating = false;
+    }
+
+    void Brake(WheelCollider col, float brake)
+    {
+        updating = true;
+        col.brakeTorque = brake;
+        updating = false;
+    }
+
+    void UpdateWheelPos(WheelCollider col, Transform wheelPos)
+    {
+        updating = true;
+        col.GetWorldPose(out Vector3 pos, out Quaternion quat);
+        wheelPos.SetPositionAndRotation(pos, quat);
+        updating = false;
+    }
+    
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         float[] continuousActions = actionsOut.ContinuousActions.Array;
 
         continuousActions[0] = Input.GetAxis("Vertical");
         continuousActions[1] = Input.GetAxis("Horizontal");
+        //continuousActions[2] = Input.GetAxis("Jump");
     }
 
     /// <summary>
@@ -89,24 +160,24 @@ public class CarAgent : Agent
         // 3 Observations
     }
 
-    /// <summary>
-    /// Called when an episode begins
-    /// Resetting the environment
-    /// </summary>
+    ///// <summary>
+    ///// Called when an episode begins
+    ///// Resetting the environment
+    ///// </summary>
     public override void OnEpisodeBegin()
     {
-        if (TrainingMode)
-        {
-            //Reset the scene
-            transform.localPosition = new Vector3(0, 0, -15);
-            transform.rotation = Quaternion.Euler(0, 0, 0);
-            Rb.velocity = Vector3.zero;
-            Rb.angularVelocity = Vector3.zero;
-            RefreshRewards();
-            FindNearestReward();
-        }
-        //transform.rotation = Quaternion.Euler(0, MaxSteeringAngle * UnityEngine.Random.Range(-1f, 1f), 0);
-        //Rb.AddForce(transform.forward.normalized * MaxAcceleration* UnityEngine.Random.Range(-1f, 1f), ForceMode.Acceleration);
+        //if (TrainingMode)
+        //{
+        //Reset the scene
+        transform.localPosition = new Vector3(0, 0.74f, -15);
+        transform.rotation = Quaternion.Euler(0, 0, 0);
+        Rb.velocity = Vector3.zero;
+        Rb.angularVelocity = Vector3.zero;
+        //}
+        RefreshRewards();
+        FindNearestReward();
+        transform.rotation = Quaternion.Euler(0, MaxSteeringAngle * UnityEngine.Random.Range(-1f, 1f), 0);
+        Rb.AddForce(transform.forward.normalized * MaxAcceleration * UnityEngine.Random.Range(-1f, 1f), ForceMode.Acceleration);
     }
 
     /// <summary>
@@ -129,48 +200,55 @@ public class CarAgent : Agent
     /// <param name="collision">The collision info</param>
     private void OnCollisionEnter(Collision collision)
     {
-        if (TrainingMode)
-        {
+        //if (TrainingMode)
+        //{
             // Collided with the area boundary, give a negative reward & End episode
             if (collision.collider.CompareTag("Wall"))
             {
-                SetReward(-1f);
+                Debug.Log("Wall");
+                SetReward(-20f);
                 EndEpisode();
             }
-        }
+        //}
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (TrainingMode)
-        {
+        //if (TrainingMode)
+        //{
             // Collided with the area boundary, give a negative reward
             if (other.gameObject.CompareTag("Reward"))
             {
                 CheckForReward(other.gameObject.transform);
                 FindNearestReward();
             }
-        }
+        //}
     }
 
+    private Dictionary<Transform,bool> CRewards = new Dictionary<Transform,bool>();
+    
     /// <summary>
     /// Called when cars collide with rewards
     /// </summary>
     /// <param name="reward">Collided Reward GameObject</param>
     private void CheckForReward(Transform reward)
     {
-        reward.gameObject.SetActive(false);
+        //reward.gameObject.SetActive(false);
         float directionReward = Vector3.Dot(Rb.velocity.normalized, reward.forward.normalized);
-        AddReward(1f * directionReward);
+        AddReward(0.2f * directionReward);
+        CRewards[reward] = false;
         bool any_reward_on = false;
         Rewards.ForEach(r =>
         {
-            if (r.gameObject.activeInHierarchy)
+            if (CRewards[r])
             {
                 any_reward_on = true;
             }
         });
-        if (!any_reward_on) Rewards.ForEach(r => r.gameObject.SetActive(true));
+        if (!any_reward_on)
+        {
+            Rewards.ForEach(r => CRewards[r]=true);
+        }
     }
 
     private void FindNearestReward(Transform except = null)
@@ -180,8 +258,8 @@ public class CarAgent : Agent
         {
             if (reward.gameObject.activeInHierarchy && reward != except)
             {
-                Vector3 toReward = reward.position - transform.position;
-                if (toReward.magnitude < minDistance && Vector3.Dot(toReward, reward.forward) > 0)
+                Vector3 toReward = reward.position - gameObject.transform.position;
+                if (toReward.magnitude < minDistance && Vector3.Dot(toReward, reward.forward) > 0 && CRewards[reward])
                 {
                     minDistance = toReward.magnitude;
                     nearestReward = reward;
@@ -211,6 +289,7 @@ public class CarAgent : Agent
             if (child.CompareTag("Reward"))
             {
                 Rewards.Add(child);
+                CRewards.Add(child,true);
             }
             else
             {
@@ -231,7 +310,7 @@ public class CarAgent : Agent
     IEnumerator SameRewardCheck() // Brain_03
     {
         Transform reward = nearestReward;
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(3f);
         if (reward == nearestReward)
         {
             FindNearestReward(reward);
@@ -246,25 +325,24 @@ public class CarAgent : Agent
         if (TrainingMode)
         {
             // Fuel consumption from Brain_07
-            AddReward(-0.01f);
-            AddReward(0.01f * Rb.velocity.magnitude / MaxSpeed);
-            // Before Brain_07
-            //if (Rb.velocity.magnitude > MaxSpeed || Rb.velocity.magnitude < MaxSpeed/3.5)
-            //{
-            //    AddReward(-0.1f);
-            //}
+            //AddReward(-0.02f*Time.deltaTime);
+            //AddReward(0.5f/0.02f * Rb.velocity.magnitude / MaxSpeed);
+            if (Rb.velocity.magnitude > MaxSpeed || Rb.velocity.magnitude < MaxSpeed / 2)
+            {
+                AddReward(-0.4f);
+            }
             //else
             //{
             //    AddReward(0.01f);
             //}
-            Debug.DrawRay(transform.position, transform.forward.normalized * 10, Color.green);
-            //Debug.DrawLine(transform.position, nearestReward.position, Color.yellow);
-            Debug.DrawRay(transform.position, Rb.velocity, Color.red);
         }
-        if (Rb.velocity.magnitude > MaxSpeed)
-        {
-            Rb.velocity = Rb.velocity.normalized * MaxSpeed;
-        }
+        //if (Rb.velocity.magnitude > MaxSpeed)
+        //{
+        //    Rb.velocity = Rb.velocity.normalized * MaxSpeed;
+        //}
+        Debug.DrawRay(transform.position, transform.forward.normalized * 10, Color.green);
+        Debug.DrawLine(transform.position, nearestReward.position, Color.yellow);
+        Debug.DrawRay(transform.position, Rb.velocity, Color.red);
     }
 
 }
