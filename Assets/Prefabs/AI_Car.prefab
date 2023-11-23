@@ -82,8 +82,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 3
-    NumStackedVectorObservations: 1
+    VectorObservationSize: 1
+    NumStackedVectorObservations: 2
     m_ActionSpec:
       m_NumContinuousActions: 2
       BranchSizes: 
@@ -91,7 +91,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: 8af89e94c444aab4e80b4dd93c6bc7b4, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: SelfDrivingCar
@@ -115,7 +115,7 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 5000
-  MaxSpeed: 80
+  MaxSpeed: 15
   MaxAcceleration: 2000
   MaxSteeringAngle: 50
   TrainingMode: 0

@@ -61,6 +61,10 @@ public class CarAgent : Agent
     public override void Initialize()
     {
         Rb = GetComponent<Rigidbody>();
+        Rewards.ForEach(r =>
+        {
+            CRewards[r] = true;
+        });
         FindNearestReward();
         if (!TrainingMode) MaxStep = 0;
     }
@@ -81,7 +85,8 @@ public class CarAgent : Agent
         float brake = acceleration <0 ? BrakeTorque * -continuousActions[0] : 0 ;
 
         AddReward(-0.1f * Mathf.Abs(continuousActions[1]));
-        AddReward(0.5f * continuousActions[0]);
+        if (continuousActions[0] > 0 )AddReward(0.2f * continuousActions[0]);
+        else AddReward(-0.5f * continuousActions[0]);
 
         if (!updating & acceleration > 0) Torque(WheelBL, acceleration);
         if (!updating & acceleration > 0) Torque(WheelBR, acceleration);
@@ -152,10 +157,10 @@ public class CarAgent : Agent
         //sensor.AddObservation(transform.rotation.eulerAngles.y / 180f);// 1 Observation
         sensor.AddObservation(Rb.velocity.magnitude / MaxSpeed); // 1 Observation
                                                                  //sensor.AddObservation(transform.forward.normalized); // 3 Observations
-        Vector3 toReward = nearestReward.position - transform.position;
+        //Vector3 toReward = nearestReward.position - transform.position;
         //sensor.AddObservation(toReward.normalized); // 3 Observations
-        sensor.AddObservation(toReward.magnitude); // 1 Observations
-        sensor.AddObservation(Vector3.Dot(transform.forward.normalized, toReward.normalized)); // 1 Observations
+        //sensor.AddObservation(toReward.magnitude); // 1 Observations
+        //sensor.AddObservation(Vector3.Dot(transform.forward.normalized, toReward.normalized)); // 1 Observations
 
         // 3 Observations
     }
@@ -176,8 +181,8 @@ public class CarAgent : Agent
         //}
         RefreshRewards();
         FindNearestReward();
-        transform.rotation = Quaternion.Euler(0, MaxSteeringAngle * UnityEngine.Random.Range(-1f, 1f), 0);
-        Rb.AddForce(transform.forward.normalized * MaxAcceleration * UnityEngine.Random.Range(-1f, 1f), ForceMode.Acceleration);
+        //transform.rotation = Quaternion.Euler(0, MaxSteeringAngle * UnityEngine.Random.Range(-1f, 1f), 0);
+        //Rb.AddForce(transform.forward.normalized * MaxAcceleration * UnityEngine.Random.Range(-1f, 1f), ForceMode.Acceleration);
     }
 
     /// <summary>
@@ -327,21 +332,21 @@ public class CarAgent : Agent
             // Fuel consumption from Brain_07
             //AddReward(-0.02f*Time.deltaTime);
             //AddReward(0.5f/0.02f * Rb.velocity.magnitude / MaxSpeed);
-            if (Rb.velocity.magnitude > MaxSpeed || Rb.velocity.magnitude < MaxSpeed / 2)
+            if (Rb.velocity.magnitude >= MaxSpeed || Rb.velocity.magnitude < MaxSpeed / 2)
             {
-                AddReward(-0.4f);
+                AddReward(-1f);
             }
             //else
             //{
             //    AddReward(0.01f);
             //}
         }
-        //if (Rb.velocity.magnitude > MaxSpeed)
-        //{
-        //    Rb.velocity = Rb.velocity.normalized * MaxSpeed;
-        //}
+        if (Rb.velocity.magnitude > MaxSpeed)
+        {
+            Rb.velocity = Rb.velocity.normalized * MaxSpeed;
+        }
         Debug.DrawRay(transform.position, transform.forward.normalized * 10, Color.green);
-        Debug.DrawLine(transform.position, nearestReward.position, Color.yellow);
+        //Debug.DrawLine(transform.position, nearestReward.position, Color.yellow);
         Debug.DrawRay(transform.position, Rb.velocity, Color.red);
     }
 
