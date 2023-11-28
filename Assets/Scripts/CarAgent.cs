@@ -86,7 +86,7 @@ public class CarAgent : Agent
 
         AddReward(-0.1f * Mathf.Abs(continuousActions[1]));
         if (continuousActions[0] > 0 )AddReward(0.2f * continuousActions[0]);
-        else AddReward(-0.3f * continuousActions[0]);
+        else AddReward(-0.5f * continuousActions[0]);
 
         if (!updating & acceleration > 0) Torque(WheelBL, acceleration);
         if (!updating & acceleration > 0) Torque(WheelBR, acceleration);
@@ -240,7 +240,7 @@ public class CarAgent : Agent
     {
         //reward.gameObject.SetActive(false);
         float directionReward = Vector3.Dot(Rb.velocity.normalized, reward.forward.normalized);
-        AddReward(0.05f * directionReward);
+        AddReward(0.2f * directionReward);
         CRewards[reward] = false;
         bool any_reward_on = false;
         Rewards.ForEach(r =>
@@ -330,7 +330,7 @@ public class CarAgent : Agent
         if (TrainingMode)
         {
             // Fuel consumption from Brain_07
-            AddReward(-0.02f);
+            //AddReward(-0.02f*Time.deltaTime);
             //AddReward(0.5f/0.02f * Rb.velocity.magnitude / MaxSpeed);
             if (Rb.velocity.magnitude >= MaxSpeed || Rb.velocity.magnitude < MaxSpeed / 2)
             {
