@@ -5,7 +5,7 @@ using System.Data.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class AI_Car : MonoBehaviour
+public class NPC_Car : MonoBehaviour
 {
     [Tooltip("Car's maximum speed")]
     public float MaxSpeed = 10f;

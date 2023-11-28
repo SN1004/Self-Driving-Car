@@ -8,8 +8,7 @@ TagManager:
   - Car
   - Reward
   - Tile
-  - tile
-  - wall
+  - NPC
   layers:
   - Default
   - TransparentFX
@@ -17,7 +16,7 @@ TagManager:
   - Agent
   - Water
   - UI
-  - 
+  - NPC
   - 
   - 
   - 
