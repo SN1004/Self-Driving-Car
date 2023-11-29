@@ -91,9 +91,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 692b27eaf48f9bf40b4c154cb471f3d0, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: 24e779a2d4b032d4ab2137203b2b76dc, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: SelfDrivingCar
   TeamId: 0
   m_UseChildSensors: 1

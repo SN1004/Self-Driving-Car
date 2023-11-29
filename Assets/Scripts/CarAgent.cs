@@ -101,12 +101,12 @@ public class CarAgent : Agent
         //steering = Mathf.MoveTowards(steering, target, steering!=0? target/steering :5f);
         //}
 
-        AddReward(-0.5f * Mathf.Abs(continuousActions[1]));
-        if (continuousActions[0] > 0) AddReward(0.3f * continuousActions[0]);
-        else AddReward(-0.3f * continuousActions[0]);
+        //AddReward(-0.05f * Mathf.Abs(continuousActions[1]));
+        //if (continuousActions[0] > 0) AddReward(0.03f * continuousActions[0]);
+        //else AddReward(-0.05f * continuousActions[0]);
 
-        if ( acceleration > 0) Torque(WheelBL, acceleration);
-        if (acceleration > 0) Torque(WheelBR, acceleration);
+        if (!updating && acceleration > 0) Torque(WheelBL, acceleration);
+        if (!updating && acceleration > 0) Torque(WheelBR, acceleration);
 
         if (!updating) Steer(WheelFL, steering);
         if (!updating) Steer(WheelFR, steering);
@@ -172,7 +172,7 @@ public class CarAgent : Agent
         //    return;
         //}
         //sensor.AddObservation(transform.rotation.eulerAngles.y / 180f);// 1 Observation
-        sensor.AddObservation(Rb.velocity.magnitude); // 1 Observation
+        sensor.AddObservation(Rb.velocity.magnitude/MaxSpeed); // 1 Observation
         //sensor.AddObservation(MaxSpeed);
         //sensor.AddObservation(WheelFR.steerAngle);//sensor.AddObservation(transform.forward.normalized); // 3 Observations
         //Vector3 toReward = nearestReward.position - transform.position;
@@ -221,7 +221,7 @@ public class CarAgent : Agent
     /// Called when the agent collides with something solid
     /// </summary>
     /// <param name="collision">The collision info</param>
-    private void OnCollisionEnter(Collision collision)
+    private void OnCollisionStay(Collision collision)
     {
         //if (TrainingMode)
         //{
@@ -229,8 +229,8 @@ public class CarAgent : Agent
             if (collision.collider.CompareTag("Wall"))
             {
                 Debug.Log("Wall");
-                SetReward(-20f);
-                EndEpisode();
+                AddReward(-0.1f);
+                //EndEpisode();
             }
             //if (collision.collider.CompareTag("NPC"))
             //{
@@ -252,10 +252,9 @@ public class CarAgent : Agent
             // Collided with the area boundary, give a negative reward
             if (other.gameObject.CompareTag("Reward"))
             {
-            //CheckForReward(other.gameObject.transform);
-            //FindNearestReward();
-            float directionReward = Vector3.Dot(Rb.velocity.normalized, other.gameObject.transform.forward.normalized);
-            AddReward(0.05f * directionReward);
+                //CheckForReward(other.gameObject.transform);
+                //FindNearestReward();
+                AddReward(0.01f);
             }
         //}
     }
@@ -361,15 +360,11 @@ public class CarAgent : Agent
     private void FixedUpdate()
     {
         // Fuel consumption from Brain_07
-        AddReward(-0.02f);
-        AddReward(-0.1f* Math.Abs(MaxSpeed - Rb.velocity.magnitude / MaxSpeed));
+        //AddReward(-0.01f);
+        AddReward(-0.01f* Math.Abs(MaxSpeed - Rb.velocity.magnitude / MaxSpeed));
         //if (Rb.velocity.magnitude >= MaxSpeed || Rb.velocity.magnitude < MaxSpeed / 2)
         //{
-        //    AddReward(-0.5f);
-        //}
-        //else
-        //{
-        //    AddReward(0.01f);
+        //    AddReward(-0.1f);
         //}
         //AddReward(-Math.Abs(transform.rotation.eulerAngles.z) / 20f);
         //AddReward(-Math.Abs(WheelFL.steerAngle) /MaxSteeringAngle);
