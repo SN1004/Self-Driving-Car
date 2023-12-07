@@ -101,8 +101,8 @@ public class CarAgent : Agent
         //steering = Mathf.MoveTowards(steering, target, steering!=0? target/steering :5f);
         //}
 
-        //AddReward(-0.05f * Mathf.Abs(continuousActions[1]));
-        //if (continuousActions[0] > 0) AddReward(0.03f * continuousActions[0]);
+        AddReward(-0.05f * Mathf.Abs(continuousActions[1]));
+        if (continuousActions[0] > 0) AddReward(0.03f * continuousActions[0]);
         //else AddReward(-0.05f * continuousActions[0]);
 
         if (!updating && acceleration > 0) Torque(WheelBL, acceleration);
@@ -359,9 +359,17 @@ public class CarAgent : Agent
     /// </summary>
     private void FixedUpdate()
     {
-        // Fuel consumption from Brain_07
-        //AddReward(-0.01f);
-        AddReward(-0.01f* Math.Abs(MaxSpeed - Rb.velocity.magnitude / MaxSpeed));
+        if(transform.position.y < -1f && transform.position.y > 1f)
+        {
+            transform.position = starting_pos;
+            transform.rotation = starting_rot;
+            Rb.velocity = Vector3.zero;
+            Rb.angularVelocity = Vector3.zero;
+            AddReward(-1f);
+            EndEpisode();
+        }
+        AddReward(-0.01f);
+        //AddReward(-0.01f* Math.Abs(MaxSpeed - Rb.velocity.magnitude / MaxSpeed));
         //if (Rb.velocity.magnitude >= MaxSpeed || Rb.velocity.magnitude < MaxSpeed / 2)
         //{
         //    AddReward(-0.1f);

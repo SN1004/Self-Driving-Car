@@ -91,7 +91,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 24e779a2d4b032d4ab2137203b2b76dc, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: ca98f2f250f55d24b96e6aa76b359d5f, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 2
   m_BehaviorName: SelfDrivingCar
@@ -876,7 +876,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7618421431701940595}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.17999999, z: 1.29}
+  m_LocalPosition: {x: 0, y: 0.24, z: 1.29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -901,7 +901,7 @@ MonoBehaviour:
   - Reward
   - Untagged
   m_RaysPerDirection: 8
-  m_MaxRayDegrees: 69
+  m_MaxRayDegrees: 60
   m_SphereCastRadius: 0.3
   m_RayLength: 40
   m_RayLayerMask:
@@ -911,7 +911,7 @@ MonoBehaviour:
   rayHitColor: {r: 1, g: 0, b: 0, a: 1}
   rayMissColor: {r: 1, g: 1, b: 1, a: 1}
   m_StartVerticalOffset: 0
-  m_EndVerticalOffset: 0
+  m_EndVerticalOffset: -1.2
 --- !u!1 &8015078424498043474
 GameObject:
   m_ObjectHideFlags: 0
@@ -937,7 +937,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8015078424498043474}
   m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0.18, z: -0.75}
+  m_LocalPosition: {x: 0, y: 0.371, z: -2.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -962,7 +962,7 @@ MonoBehaviour:
   - Reward
   - Untagged
   m_RaysPerDirection: 6
-  m_MaxRayDegrees: 65
+  m_MaxRayDegrees: 60
   m_SphereCastRadius: 0.3
   m_RayLength: 40
   m_RayLayerMask:
@@ -972,4 +972,4 @@ MonoBehaviour:
   rayHitColor: {r: 1, g: 0, b: 0, a: 1}
   rayMissColor: {r: 1, g: 1, b: 1, a: 1}
   m_StartVerticalOffset: 0
-  m_EndVerticalOffset: 0
+  m_EndVerticalOffset: -1.4
